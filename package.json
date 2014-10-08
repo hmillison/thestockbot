@@ -1,0 +1,21 @@
+{
+  "name": "weathertest",
+  "main": "server.js",
+  "dependencies": {
+    "express": "~4.0.0",
+    "body-parser": "~1.0.1",
+    "redis": "~0.12.1",
+    "request": "~2.44.0",
+    "twitter-text": "~1.9.4",
+    "yql": "~1.0.2"
+  },
+  "subdomain": "weathertest",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "version": "0.0.0-2",
+  "engines": {
+    "node": "0.10.x"
+  },
+  "repository":"https://github.com/InboxAppCo/WeatherService.git"
+}
