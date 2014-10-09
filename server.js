@@ -1,26 +1,28 @@
-// server.js
+// WeatherService was create by Hani Shabsigh at Inbox
+// You can try this service by messaging @weather on Inbox Messenger
 
 // BASE SETUP
 // =============================================================================
 
-// call the packages we need
+// setup packages
 var express       = require('express');    // call express
 var app           = express();         // define our app using express
 var bodyParser    = require('body-parser');
 var request       = require('request');
 var YQL           = require('yql');
+
+// setup Inbox & Yahoo tokens, ensure they are available
 var server_token  = ''; // replace null here with your Inbox server_token
 var yahoo_appId   = ''; // replace null here with your Yahoo AppId
+if (!server_token || server_token.length == 0) { throw new Error('please enter your Inbox server_token'); };
+if (!yahoo_appId || yahoo_appId.length == 0) { throw new Error('please enter your Yahoo AppId'); };
 
-if (!server_token) { throw new Error('please enter your Inbox server_token'); };
-if (!yahoo_appId) { throw new Error('please enter your Yahoo AppId'); };
-
-// configure app to use bodyParser()
-// this will let us get the data from a POST
+// configure app to use bodyParser(), this will let us get the data from a POST
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-var port = process.env.PORT || 8080;    // set our port
+// set our port
+var port = process.env.PORT || 8080;
 
 // ROUTES FOR OUR API
 // =============================================================================
