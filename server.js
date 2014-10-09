@@ -38,7 +38,7 @@ router.post('/message', function(req, res) {
     sendMessage('Hey! Send me the name of any city in the world and I will respond with the weather!',req.body.sender.username);
   };
   if (req.body.type == 21) {
-    getWOEIDForCity(req.body.data.text, function(error, woeid, name) {
+    getWOEIDForCity(req.body.data.text, function(error, woeid, name, state) {
       if (error) {
         sendMessage("Sorry, we don't know this city.",req.body.sender.username);
       } else {
@@ -46,7 +46,11 @@ router.post('/message', function(req, res) {
           sendMessage("Sorry, we don't know this city.",req.body.sender.username);
         } else {
           getWeatherForWOEID(woeid, function(error, weather) {
-            sendMessage('the weather is ' + weather.text + ' and ' + weather.temp + '\xB0F in ' + name,req.body.sender.username);
+            if (state) {
+              sendMessage('the weather is ' + weather.text + ' and ' + weather.temp + '\xB0F in ' + name + ', ' + state,req.body.sender.username);
+            } else {
+              sendMessage('the weather is ' + weather.text + ' and ' + weather.temp + '\xB0F in ' + name,req.body.sender.username);
+            }
           });
         }
       }
@@ -95,9 +99,9 @@ function getWOEIDForCity(city, func) {
     console.log(response.statusCode);
     console.log(error);
     if (response.statusCode != 200 ||  error || !json.places.place) {
-      func('error',null,null);
+      func('error',null,null,null);
     } else {
-      func(null,json.places.place[0].woeid, json.places.place[0].name);
+      func(null,json.places.place[0].woeid, json.places.place[0].name, json.places.place[0].admin1);
     }
   }
   request.get(options,callback);

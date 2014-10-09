@@ -13,9 +13,9 @@
   "scripts": {
     "start": "node server.js"
   },
-  "version": "0.0.0-2",
+  "version": "0.0.0-5",
   "engines": {
     "node": "0.10.x"
   },
-  "repository":"https://github.com/InboxAppCo/WeatherService.git"
+  "repository": "https://github.com/InboxAppCo/WeatherService.git"
 }
