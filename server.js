@@ -114,8 +114,12 @@ router.post('/message', function(req, res) {
     } else {
 
         loadBase64Image(req.body.data.picture, function(image, prefix) {
-            console.log(prefix);
-            console.log(image);
+            // console.log(prefix);
+            // console.log(image);
+            fs.writeFile("main.jpg", new Buffer(image, "base64"), function(err) {
+              if(err)
+                console.log(err)
+            });
         });
 
 
