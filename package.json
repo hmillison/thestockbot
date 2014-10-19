@@ -4,6 +4,7 @@
   "dependencies": {
     "blpapi": "^0.1.10",
     "body-parser": "~1.0.1",
+    "cloudinary": "^1.0.12",
     "express": "~4.0.0",
     "path": "^0.4.9",
     "redis": "~0.12.1",
