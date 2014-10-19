@@ -89,6 +89,7 @@ router.post('/message', function(req, res) {
     }
   }
   else{
+    console.log(req.body);
     imageRecog(req.body.data.picture);
   }
 
@@ -214,7 +215,6 @@ function imageRecog(img) {
         .field("image_request[longitude]", "14.3583203002251")
         .field("image_request[remote_image_url]", img)
         .end(function(result) {
-          console.log(result);
             unirest.get("https://camfind.p.mashape.com/image_responses/" + result.token)
                 .header("X-Mashape-Key", "9jDfMEJDCbmshgtbd0t7s6zd2ZGVp1hu4A9jsnpWi9zQqfIlCr")
                 .end(function(result) {
