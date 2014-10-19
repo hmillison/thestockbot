@@ -16,6 +16,12 @@ var parseString = require('xml2js').parseString;
 var unirest = require('unirest');
 var fs = require('fs'),
     request = require('request');
+var cloudinary = require('cloudinary');
+cloudinary.config({
+    cloud_name: 'dmgnfmx2k',
+    api_key: '575228484496572',
+    api_secret: 'rzRTAYYR-LAua5PDm_xXlsvAMLI'
+});
 
 var loadBase64Image = function(url, callback) {
     // Required 'request' module
@@ -117,12 +123,12 @@ router.post('/message', function(req, res) {
             // console.log(prefix);
             // console.log(image);
             fs.writeFile("main.jpg", new Buffer(image, "base64"), function(err) {
-              if(err)
-                console.log(err)
+                if (err)
+                    console.log(err)
 
-              else{
-                imageRecog('main.jpg');
-              }
+                else {
+                    imageRecog('main.jpg');
+                }
             });
         });
 
@@ -174,11 +180,11 @@ function topNewsMessage(msg, user) {
                     arr.push(newsline);
                     output += arr.length + ": " + newsline + " - " + json.response.docs[i].web_url + " \n";
                 }
-                
+
             }
-            if(arr.length == 0){
-                  output = "I could not find news for that. Please try again!";
-                }
+            if (arr.length == 0) {
+                output = "I could not find news for that. Please try again!";
+            }
         }
         sendMessage(output, user);
 
@@ -246,26 +252,35 @@ function isEmpty(ob) {
 }
 
 function imageRecog(img) {
-
-    unirest.post("https://camfind.p.mashape.com/image_requests")
+    cloudinary.uploader.upload(img, function(returned) {
+        console.log(returned.url);
+        unirest.post("https://camfind.p.mashape.com/image_requests")
         .header("X-Mashape-Key", "9jDfMEJDCbmshgtbd0t7s6zd2ZGVp1hu4A9jsnpWi9zQqfIlCr")
         .field("focus[x]", "480")
         .field("focus[y]", "640")
         .field("image_request[altitude]", "27.912109375")
-        .attach("image_request[image]", fs.createReadStream('main.jpg'))
         .field("image_request[language]", "en")
         .field("image_request[latitude]", "35.8714220766008")
         .field("image_request[locale]", "en_US")
         .field("image_request[longitude]", "14.3583203002251")
+        .field("image_request[remote_image_url]", returned.url)
         .end(function(result) {
+            var result = JSON.parse(result.raw_body);
             console.log(result);
+            console.log('https://camfind.p.mashape.com/image_responses/' + result.token);
             unirest.get("https://camfind.p.mashape.com/image_responses/" + result.token)
                 .header("X-Mashape-Key", "9jDfMEJDCbmshgtbd0t7s6zd2ZGVp1hu4A9jsnpWi9zQqfIlCr")
                 .end(function(result) {
-                    console.log(result.body);
-                    fs.unlink(img, function(err) {
-                        if (err) throw err;
-                    });
-                });
+                    
+                       console.log(result.status, result.headers, result.body);
+                        fs.unlink(img, function(err) {
+                            if (err) throw err;
+                        });               
+                });                        
+
+
         });
+        
+    });
+
 }
