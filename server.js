@@ -202,6 +202,7 @@ function isEmpty(ob) {
 
 function imageRecog(img) {
   console.log(img);
+  
     unirest.post("https://camfind.p.mashape.com/image_requests")
         .header("X-Mashape-Key", "9jDfMEJDCbmshgtbd0t7s6zd2ZGVp1hu4A9jsnpWi9zQqfIlCr")
         .field("focus[x]", "480")
