@@ -77,7 +77,7 @@ router.post('/message', function(req, res) {
                 c.log(m);
                 if (!isEmpty(m.data.securityData[0].fieldData)) {
                   var result = m.data.securityData[0].fieldData;
-                  sendMessage("The stock price for " + result.LONG_COMP_NAME + " is $" + result.PX_LAST + " - send 'more' for recent news stories", req.body.sender.username);
+                  sendMessage("The stock price for " + result.LONG_COMP_NAME + " is $" + result.PX_LAST + " \nsend 'more' for recent news stories", req.body.sender.username);
                 } else {
                   sendMessage("I could not find the stock info for that. Please try again!", req.body.sender.username);
                 }
@@ -126,13 +126,13 @@ function topNewsMessage(msg, user)
    request("http://api.nytimes.com/svc/search/v2/articlesearch.json?q=" + encodeURIComponent(msg) + "&api-key=f763beead7843cc4f910d29de71dc278:1:22349521", function(error, response, body) {
       if (!error) {
         var json = JSON.parse(body);
-        var output = "Most recent news for " + msg.toUpperCase() + " - ";
+        var output = "Most recent news for " + msg.toUpperCase() + " \n ";
         var arr = [];
         for (var i = 0; i < json.response.docs.length; i++) {
           var newsline = json.response.docs[i].headline.print_headline;
           if (newsline != null && (json.response.docs[i].news_desk == "Business" || json.response.docs[i].section_name == "Business Day") && arr.indexOf(newsline) == -1){
             arr.push(newsline);
-            output += " " + arr.length + ": " + newsline + " - ";
+            output += arr.length + ": " + newsline + " \n";
           }
         }
       } else {
