@@ -1,5 +1,6 @@
-// WeatherService was create by Hani Shabsigh at Inbox
-// You can try this service by messaging @weather on Inbox Messenger
+// Based on WeatherService by Hani Shabsigh at Inbox
+// Gets Stock Prices using Bloomberg's API
+// You can try this service by messaging @thestockbot on Inbox Messenger
 
 // BASE SETUP
 // =============================================================================
@@ -9,13 +10,14 @@ var express       = require('express');    // call express
 var app           = express();         // define our app using express
 var bodyParser    = require('body-parser');
 var request       = require('request');
-var YQL           = require('yql');
+var c = require('./Console.js');
+var blpapi        = require('blpapi');
+
 
 // setup Inbox & Yahoo tokens, ensure they are available
-var server_token  = ''; // replace null here with your Inbox server_token
-var yahoo_appId   = ''; // replace null here with your Yahoo AppId
+var server_token  = 'QnReKVWdhNF8skRxsbqWuGAhNjch6sL20XX6NI4J2Iihhu9NLRUiuIV0C4eS'; // replace null here with your Inbox server_token
 if (!server_token || server_token.length == 0) { throw new Error('please enter your Inbox server_token'); };
-if (!yahoo_appId || yahoo_appId.length == 0) { throw new Error('please enter your Yahoo AppId'); };
+//if (!yahoo_appId || yahoo_appId.length == 0) { throw new Error('please enter your Yahoo AppId'); };
 
 // configure app to use bodyParser(), this will let us get the data from a POST
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -30,32 +32,32 @@ var router = express.Router();        // get an instance of the express Router
 
 // test route to make sure everything is working (accessed at GET http://localhost:8080/api)
 router.get('/', function(req, res) {
-  res.json({ message: 'hooray! this is the weather bot!' });
+  res.json({ message: 'Hello I am thestockbot... beep boop beep!' });
 });
 
 router.post('/message', function(req, res) {
-  if (req.body.type == 12) {
-    sendMessage('Hey! Send me the name of any city in the world and I will respond with the weather!',req.body.sender.username);
-  };
-  if (req.body.type == 21) {
-    getWOEIDForCity(req.body.data.text, function(error, woeid, name, state) {
-      if (error) {
-        sendMessage("Sorry, we don't know this city.",req.body.sender.username);
-      } else {
-        if (error) {
-          sendMessage("Sorry, we don't know this city.",req.body.sender.username);
-        } else {
-          getWeatherForWOEID(woeid, function(error, weather) {
-            if (state) {
-              sendMessage('the weather is ' + weather.text + ' and ' + weather.temp + '\xB0F in ' + name + ', ' + state,req.body.sender.username);
-            } else {
-              sendMessage('the weather is ' + weather.text + ' and ' + weather.temp + '\xB0F in ' + name,req.body.sender.username);
-            }
-          });
-        }
-      }
-    });
-  };
+  var company = req.body.data.text;
+  request('http://d.yimg.com/autoc.finance.yahoo.com/autoc?query=' + company +'&callback=YAHOO.Finance.SymbolSuggest.ssCallback', function (error, response, body) {
+  if (!error && response.statusCode == 200) {
+    var json = body.replace("YAHOO.Finance.SymbolSuggest.ssCallback(","");
+    json = json.substring(0,json.length-1);
+    json = JSON.parse(json);
+    var response = "";
+    if(json.ResultSet.Query === 'undefined'){
+      response = "I don't understand that. Please try again!";
+    }
+    else{
+      response = json.ResultSet.Result[0].symbol;
+      getStockDetails(response, function(m){
+          var result = m.data.securityData[0].fieldData;
+          sendMessage("The stock price for " + result.LONG_COMP_NAME + " is $" + result.PX_LAST, req.body.sender.username);
+      });
+    }
+
+    //sendMessage(response, req.body.sender.username);
+  }});
+  console.log("message recieved");
+ // sendMessage('hello world', req.body.sender.username);
   res.json(200,{reply:true});
 });
 
@@ -83,49 +85,44 @@ function sendMessage(message_text, username) {
   request.post(options,callback);
 };
 
-function getWOEIDForCity(city, func) {
-  var options = {
-    url: 'http://where.yahooapis.com/v1/places.q('+city+')',
-    headers: {
-        'Accept': 'application/json'
-    },
-    qs: {
-      appid: yahoo_appId
-    }
-  };
-  function callback(error, response, body) {
-    json = JSON.parse(body);
-    console.log(body);
-    console.log(response.statusCode);
-    console.log(error);
-    if (response.statusCode != 200 ||  error || !json.places.place) {
-      func('error',null,null,null);
-    } else {
-      func(null,json.places.place[0].woeid, json.places.place[0].name, json.places.place[0].admin1);
-    }
-  }
-  request.get(options,callback);
+function getStockDetails(ticker, callback){
+  var session = new blpapi.Session({ host: '10.8.8.1', port: 8194 });
+  var service_refdata = 1; // Unique identifier for refdata service
+  var seclist = [ticker + ' US Equity'];
+
+  session.on('SessionStarted', function(m) {
+    session.openService('//blp/refdata', service_refdata);
+  });
+
+  session.on('ServiceOpened', function(m) {
+      // Check to ensure the opened service is the refdata service
+      if (m.correlations[0].value == service_refdata) {
+          // Request the long-form company name for each security
+          session.request('//blp/refdata', 'ReferenceDataRequest',
+              { securities: seclist, fields: [
+                          'PX_LAST',
+                          'LONG_COMP_NAME', 
+                          'TOT_COMP_AW_TO_CEO_&_EQUIV', 
+                          'TOT_SALARIES_PAID_TO_CEO_&_EQUIV', 
+                          'ALL_OTHER_COMP_AW_TO_CEO_&_EQUIV',
+                          'BOARD_SIZE',
+                          'NEWS_SENTIMENT'
+                          ] }, 100);
+          // Request intraday tick data for each security, 10:30 - 14:30
+          session.request('//blp/refdata', 'HistoricalDataRequest',
+              { securities: seclist,
+                fields: ['PX_LAST', 'OPEN', 'VOLUME'],
+                startDate: "20120101",
+                endDate: "20120301",
+                periodicitySelection: "DAILY" }, 101);
+      }
+  });
+
+  session.on('ReferenceDataResponse', function(m) {
+    callback(m);
+  });
+
+  session.start();
+
 };
 
-function getWeatherForWOEID(woeid, func) {
-  var options = {
-    url: 'http://query.yahooapis.com/v1/public/yql',
-    headers: {
-        'Accept': 'application/json'
-    },
-    qs: {
-      appid: yahoo_appId,
-      q: 'select item.condition from weather.forecast where woeid = ' + woeid
-    }
-  };
-  function callback(error, response, body) {
-    json = JSON.parse(body);
-    console.log(error);
-    if (response.statusCode != 200 || error) {
-      func('error',null);
-    } else {
-      func(null,json.query.results.channel.item.condition);
-    }
-  }
-  request.get(options,callback);
-};

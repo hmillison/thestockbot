@@ -2,11 +2,14 @@
   "name": "weathertest",
   "main": "server.js",
   "dependencies": {
-    "express": "~4.0.0",
+    "blpapi": "^0.1.10",
     "body-parser": "~1.0.1",
+    "express": "~4.0.0",
+    "path": "^0.4.9",
     "redis": "~0.12.1",
     "request": "~2.44.0",
     "twitter-text": "~1.9.4",
+    "util": "^0.10.3",
     "yql": "~1.0.2"
   },
   "subdomain": "weathertest",
