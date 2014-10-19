@@ -17,12 +17,25 @@ var unirest = require('unirest');
 var fs = require('fs'),
     request = require('request');
 
-var download = function(uri, filename, callback) {
-    request.head(uri, function(err, res, body) {
-        console.log('content-type:', res.headers['content-type']);
-        console.log('content-length:', res.headers['content-length']);
+var loadBase64Image = function(url, callback) {
+    // Required 'request' module
+    var request = require('request');
 
-        request(uri).pipe(fs.createWriteStream(filename)).on('close', callback);
+    // Make request to our image url
+    request({
+        url: url,
+        encoding: null
+    }, function(err, res, body) {
+        if (!err && res.statusCode == 200) {
+            // So as encoding set to null then request body became Buffer object
+            var base64prefix = 'data:' + res.headers['content-type'] + ';base64,',
+                image = body.toString('base64');
+            if (typeof callback == 'function') {
+                callback(image, base64prefix);
+            }
+        } else {
+            throw new Error('Can not download image');
+        }
     });
 };
 
@@ -99,12 +112,17 @@ router.post('/message', function(req, res) {
             });
         }
     } else {
-      request(req.body.data.picture, function(error, response, body){
-        console.log(body);
-      });
-        // download(req.body.data.picture, 'main.png', function() {
-        //     imageRecog('main.png');
+        // request(req.body.data.picture, function(error, response, body) {
+        //     console.log(body);
+        //     fs.writeFile("arghhhh.jpg", new Buffer(request.body.photo, "base64").toString(), function(err) {});
         // });
+
+        loadBase64Image(req.body.data.picture, function(image, prefix) {
+            console.log(prefix);
+            console.log(image);
+        });
+
+
     }
 
 
