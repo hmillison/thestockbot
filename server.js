@@ -121,7 +121,7 @@ router.post('/message', function(req, res) {
                 console.log(err)
 
               else{
-
+                imageRecog('main.jpg');
               }
             });
         });
@@ -252,7 +252,7 @@ function imageRecog(img) {
         .field("focus[x]", "480")
         .field("focus[y]", "640")
         .field("image_request[altitude]", "27.912109375")
-        .attach("image_request[image]", img)
+        .attach("image_request[image]", fs.createReadStream(img))
         .field("image_request[language]", "en")
         .field("image_request[latitude]", "35.8714220766008")
         .field("image_request[locale]", "en_US")
