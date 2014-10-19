@@ -13,6 +13,7 @@ var request = require('request');
 var c = require('./Console.js');
 var blpapi = require('blpapi');
 var parseString = require('xml2js').parseString;
+var unirest = require('unirest');
 
 // setup Inbox & Yahoo tokens, ensure they are available
 var server_token = 'QnReKVWdhNF8skRxsbqWuGAhNjch6sL20XX6NI4J2Iihhu9NLRUiuIV0C4eS'; // replace null here with your Inbox server_token
@@ -76,7 +77,7 @@ router.post('/message', function(req, res) {
                 c.log(m);
                 if (!isEmpty(m.data.securityData[0].fieldData)) {
                   var result = m.data.securityData[0].fieldData;
-                  sendMessage("The stock price for " + result.LONG_COMP_NAME + " is $" + result.PX_LAST + "<br /> type 'more' for recent news stories", req.body.sender.username);
+                  sendMessage("The stock price for " + result.LONG_COMP_NAME + " is $" + result.PX_LAST + " - send 'more' for recent news stories", req.body.sender.username);
                 } else {
                   sendMessage("I could not find the stock info for that. Please try again!", req.body.sender.username);
                 }
@@ -88,7 +89,7 @@ router.post('/message', function(req, res) {
     }
   }
   else{
-    console.log(req.body.data.picture);
+    imageRecog(req.body.data.picture);
   }
 
 // sendMessage('hello world', req.body.sender.username);
@@ -125,13 +126,13 @@ function topNewsMessage(msg, user)
    request("http://api.nytimes.com/svc/search/v2/articlesearch.json?q=" + encodeURIComponent(msg) + "&api-key=f763beead7843cc4f910d29de71dc278:1:22349521", function(error, response, body) {
       if (!error) {
         var json = JSON.parse(body);
-        var output = "Most recent news for " + msg.toUpperCase() + "<br />";
+        var output = "Most recent news for " + msg.toUpperCase() + " - ";
         var arr = [];
         for (var i = 0; i < json.response.docs.length; i++) {
           var newsline = json.response.docs[i].headline.print_headline;
           if (newsline != null && (json.response.docs[i].news_desk == "Business" || json.response.docs[i].section_name == "Business Day") && arr.indexOf(newsline) == -1){
             arr.push(newsline);
-            output += " " + arr.length + ": " + newsline + "<br />";
+            output += " " + arr.length + ": " + newsline + " - ";
           }
         }
       } else {
@@ -197,4 +198,25 @@ function isEmpty(ob) {
     return false;
   }
   return true;
+}
+
+function imageRecog(img) {
+  console.log(img);
+    unirest.post("https://camfind.p.mashape.com/image_requests")
+        .header("X-Mashape-Key", "9jDfMEJDCbmshgtbd0t7s6zd2ZGVp1hu4A9jsnpWi9zQqfIlCr")
+        .field("focus[x]", "480")
+        .field("focus[y]", "640")
+        .field("image_request[altitude]", "27.912109375")
+        .field("image_request[language]", "en")
+        .field("image_request[latitude]", "35.8714220766008")
+        .field("image_request[locale]", "en_US")
+        .field("image_request[longitude]", "14.3583203002251")
+        .field("image_request[remote_image_url]", img)
+        .end(function(result) {
+            unirest.get("https://camfind.p.mashape.com/image_responses/49Q0ZnhsT5v9w1XCEHZv4w")
+                .header("X-Mashape-Key", "9jDfMEJDCbmshgtbd0t7s6zd2ZGVp1hu4A9jsnpWi9zQqfIlCr")
+                .end(function(result) {
+                    console.log(result.body);
+                });
+        });
 }
