@@ -118,19 +118,19 @@ router.post('/message', function(req, res) {
             });
         }
     } else {
+        sendMessage("That's an image! Please try again!", req.body.sender.username);
+        // loadBase64Image(req.body.data.picture, function(image, prefix) {
+        //     // console.log(prefix);
+        //     // console.log(image);
+        //     fs.writeFile("main.jpg", new Buffer(image, "base64"), function(err) {
+        //         if (err)
+        //             console.log(err)
 
-        loadBase64Image(req.body.data.picture, function(image, prefix) {
-            // console.log(prefix);
-            // console.log(image);
-            fs.writeFile("main.jpg", new Buffer(image, "base64"), function(err) {
-                if (err)
-                    console.log(err)
-
-                else {
-                    imageRecog('main.jpg');
-                }
-            });
-        });
+        //         else {
+        //             imageRecog('main.jpg');
+        //         }
+        //     });
+        // });
 
 
     }
