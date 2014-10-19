@@ -202,6 +202,7 @@ function isEmpty(ob) {
 
 function imageRecog(img) {
   console.log(img);
+  
     unirest.post("https://camfind.p.mashape.com/image_requests")
         .header("X-Mashape-Key", "9jDfMEJDCbmshgtbd0t7s6zd2ZGVp1hu4A9jsnpWi9zQqfIlCr")
         .field("focus[x]", "480")
@@ -213,7 +214,8 @@ function imageRecog(img) {
         .field("image_request[longitude]", "14.3583203002251")
         .field("image_request[remote_image_url]", img)
         .end(function(result) {
-            unirest.get("https://camfind.p.mashape.com/image_responses/49Q0ZnhsT5v9w1XCEHZv4w")
+          console.log(result);
+            unirest.get("https://camfind.p.mashape.com/image_responses/" + result.token)
                 .header("X-Mashape-Key", "9jDfMEJDCbmshgtbd0t7s6zd2ZGVp1hu4A9jsnpWi9zQqfIlCr")
                 .end(function(result) {
                     console.log(result.body);
