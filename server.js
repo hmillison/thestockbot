@@ -41,10 +41,11 @@ router.get('/', function(req, res) {
   });
 });
 
+
 router.post('/message', function(req, res) {
   if (req.body.type == 12) {
     sendMessage('Hey! Send me the name of any US S&P 500 Company and I will respond with the stock price!', req.body.sender.username);
-  } else {
+  } else if(req.body.data.text != undefined){
     var msg = req.body.data.text;
     if (msg.toUpperCase() == "MORE") {
       var options = {
@@ -75,7 +76,7 @@ router.post('/message', function(req, res) {
                 c.log(m);
                 if (!isEmpty(m.data.securityData[0].fieldData)) {
                   var result = m.data.securityData[0].fieldData;
-                  sendMessage("The stock price for " + result.LONG_COMP_NAME + " is $" + result.PX_LAST + " type 'more' for recent news stories", req.body.sender.username);
+                  sendMessage("The stock price for " + result.LONG_COMP_NAME + " is $" + result.PX_LAST + "<br /> type 'more' for recent news stories", req.body.sender.username);
                 } else {
                   sendMessage("I could not find the stock info for that. Please try again!", req.body.sender.username);
                 }
@@ -85,6 +86,9 @@ router.post('/message', function(req, res) {
         }
       });
     }
+  }
+  else{
+    console.log(req.body.data.picture);
   }
 
 // sendMessage('hello world', req.body.sender.username);
@@ -151,6 +155,7 @@ function getStockDetails(ticker, callback) {
   });
 
   session.on('ServiceOpened', function(m) {
+     
     // Check to ensure the opened service is the refdata service
     if (m.correlations[0].value == service_refdata) {
       // Request the long-form company name for each security
@@ -158,6 +163,8 @@ function getStockDetails(ticker, callback) {
         securities: seclist,
         fields: [
           'PX_LAST',
+          'CIE_DES_BULK',
+          'RT_PX_CHG_PCT_1D',
           'LONG_COMP_NAME',
           'TOT_COMP_AW_TO_CEO_&_EQUIV',
           'TOT_SALARIES_PAID_TO_CEO_&_EQUIV',
