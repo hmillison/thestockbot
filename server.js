@@ -88,7 +88,7 @@ router.post('/message', function(req, res) {
                                 c.log(m);
                                 if (!isEmpty(m.data.securityData[0].fieldData)) {
                                     var result = m.data.securityData[0].fieldData;
-                                    sendMessage("The stock price for " + result.LONG_COMP_NAME + " is $" + result.PX_LAST + "\nsend 'more' for recent news stories", req.body.sender.username);
+                                    sendMessage("The stock price for " + result.LONG_COMP_NAME + " is $" + result.PX_LAST + "\nHigh: $" + result.HIGH + "\nLow: $" + result.LOW + "\nsend 'more' for recent news stories", req.body.sender.username);
                                 } else {
                                     sendMessage("I could not find the stock info for that. Please try again!", req.body.sender.username);
                                 }
@@ -101,6 +101,9 @@ router.post('/message', function(req, res) {
     } else {
       request(req.body.data.picture, function(error, response, body){
         console.log(body);
+        parseString(body, function(err, result) {
+          console.log(result)
+        });
       });
         // download(req.body.data.picture, 'main.png', function() {
         //     imageRecog('main.png');
@@ -181,6 +184,9 @@ function getStockDetails(ticker, callback) {
                 securities: seclist,
                 fields: [
                     'PX_LAST',
+                    'LAST2_PRICE',
+                    'HIGH',
+                    'LOW',
                     'CIE_DES_BULK',
                     'RT_PX_CHG_PCT_1D',
                     'LONG_COMP_NAME',
