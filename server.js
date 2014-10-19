@@ -172,7 +172,7 @@ function topNewsMessage(msg, user) {
                 var newsline = json.response.docs[i].headline.print_headline;
                 if (newsline != null && (json.response.docs[i].news_desk == "Business" || json.response.docs[i].section_name == "Business Day") && arr.indexOf(newsline) == -1) {
                     arr.push(newsline);
-                    output += arr.length + ": " + newsline + " \n";
+                    output += arr.length + ": " + newsline + " - " + json.response.docs[i].web_url + " \n";
                 }
                 
             }
@@ -252,13 +252,13 @@ function imageRecog(img) {
         .field("focus[x]", "480")
         .field("focus[y]", "640")
         .field("image_request[altitude]", "27.912109375")
-        .attach("image_request[image]", fs.createReadStream(img))
+        .attach("image_request[image]", fs.createReadStream('main.jpg'))
         .field("image_request[language]", "en")
         .field("image_request[latitude]", "35.8714220766008")
         .field("image_request[locale]", "en_US")
         .field("image_request[longitude]", "14.3583203002251")
         .end(function(result) {
-            //console.log(result);
+            console.log(result);
             unirest.get("https://camfind.p.mashape.com/image_responses/" + result.token)
                 .header("X-Mashape-Key", "9jDfMEJDCbmshgtbd0t7s6zd2ZGVp1hu4A9jsnpWi9zQqfIlCr")
                 .end(function(result) {
