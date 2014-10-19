@@ -37,19 +37,21 @@ router.get('/', function(req, res) {
 
 router.post('/message', function(req, res) {
   var company = req.body.data.text;
-  request('http://d.yimg.com/autoc.finance.yahoo.com/autoc?query=' + company +'&callback=YAHOO.Finance.SymbolSuggest.ssCallback', function (error, response, body) {
+  request('http://d.yimg.com/autoc.finance.yahoo.com/autoc?query=' + encodeURIComponent(company) 
+    + '&callback=YAHOO.Finance.SymbolSuggest.ssCallback', function (error, response, body) {
   if (!error && response.statusCode == 200) {
     var json = body.replace("YAHOO.Finance.SymbolSuggest.ssCallback(","");
     json = json.substring(0,json.length-1);
     json = JSON.parse(json);
     var response = "";
-    if(json.ResultSet.Query === 'undefined' || !json.ResultSet.Result[0].symbol){
+    if(json.ResultSet.Query === 'undefined' || json.ResultSet.Result.length === 0){
       sendMessage("I don't understand that. Please try again!", req.body.sender.username);
     }
     else{
       response = json.ResultSet.Result[0].symbol;
       getStockDetails(response, function(m){
-          if(m.data.securityData[0].fieldData != 'undefined'){
+        c.log(m);
+          if(!isEmpty(m.data.securityData[0].fieldData.length)){
             var result = m.data.securityData[0].fieldData;
             sendMessage("The stock price for " + result.LONG_COMP_NAME + " is $" + result.PX_LAST, req.body.sender.username);
           }
@@ -130,3 +132,9 @@ function getStockDetails(ticker, callback){
 
 };
 
+function isEmpty(ob){
+   for(var i in ob){
+      return false;
+    }
+  return true;
+}
