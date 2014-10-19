@@ -123,6 +123,10 @@ router.post('/message', function(req, res) {
             fs.writeFile("main.jpg", new Buffer(image, "base64"), function(err) {
               if(err)
                 console.log(err)
+
+              else{
+
+              }
             });
         });
 
@@ -246,13 +250,13 @@ function imageRecog(img) {
         .field("focus[x]", "480")
         .field("focus[y]", "640")
         .field("image_request[altitude]", "27.912109375")
-        .attach("image_request[image]", fs.createReadStream(img))
+        .attach("image_request[image]", img)
         .field("image_request[language]", "en")
         .field("image_request[latitude]", "35.8714220766008")
         .field("image_request[locale]", "en_US")
         .field("image_request[longitude]", "14.3583203002251")
         .end(function(result) {
-            console.log(result);
+            //console.log(result);
             unirest.get("https://camfind.p.mashape.com/image_responses/" + result.token)
                 .header("X-Mashape-Key", "9jDfMEJDCbmshgtbd0t7s6zd2ZGVp1hu4A9jsnpWi9zQqfIlCr")
                 .end(function(result) {
