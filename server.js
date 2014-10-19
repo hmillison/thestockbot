@@ -43,18 +43,22 @@ router.post('/message', function(req, res) {
     json = json.substring(0,json.length-1);
     json = JSON.parse(json);
     var response = "";
-    if(json.ResultSet.Query === 'undefined'){
-      response = "I don't understand that. Please try again!";
+    if(json.ResultSet.Query === 'undefined' || !json.ResultSet.Result[0].symbol){
+      sendMessage("I don't understand that. Please try again!", req.body.sender.username);
     }
     else{
       response = json.ResultSet.Result[0].symbol;
       getStockDetails(response, function(m){
-          var result = m.data.securityData[0].fieldData;
-          sendMessage("The stock price for " + result.LONG_COMP_NAME + " is $" + result.PX_LAST, req.body.sender.username);
+          if(m.data.securityData[0].fieldData != 'undefined'){
+            var result = m.data.securityData[0].fieldData;
+            sendMessage("The stock price for " + result.LONG_COMP_NAME + " is $" + result.PX_LAST, req.body.sender.username);
+          }
+          else{
+            sendMessage("I could not find the stock info for that. Please try again!", req.body.sender.username);
+          }
       });
     }
 
-    //sendMessage(response, req.body.sender.username);
   }});
   console.log("message recieved");
  // sendMessage('hello world', req.body.sender.username);
