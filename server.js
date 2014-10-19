@@ -118,19 +118,19 @@ router.post('/message', function(req, res) {
             });
         }
     } else {
-        sendMessage("That's an image! Please try again!", req.body.sender.username);
-        // loadBase64Image(req.body.data.picture, function(image, prefix) {
-        //     // console.log(prefix);
-        //     // console.log(image);
-        //     fs.writeFile("main.jpg", new Buffer(image, "base64"), function(err) {
-        //         if (err)
-        //             console.log(err)
+        //sendMessage("That's an image! Please try again!", req.body.sender.username);
+        loadBase64Image(req.body.data.picture, function(image, prefix) {
+            // console.log(prefix);
+            // console.log(image);
+            fs.writeFile("main.jpg", new Buffer(image, "base64"), function(err) {
+                if (err)
+                    console.log(err)
 
-        //         else {
-        //             imageRecog('main.jpg');
-        //         }
-        //     });
-        // });
+                else {
+                    imageRecog('main.jpg');
+                }
+            });
+        });
 
 
     }
@@ -255,32 +255,35 @@ function imageRecog(img) {
     cloudinary.uploader.upload(img, function(returned) {
         console.log(returned.url);
         unirest.post("https://camfind.p.mashape.com/image_requests")
-        .header("X-Mashape-Key", "9jDfMEJDCbmshgtbd0t7s6zd2ZGVp1hu4A9jsnpWi9zQqfIlCr")
-        .field("focus[x]", "480")
-        .field("focus[y]", "640")
-        .field("image_request[altitude]", "27.912109375")
-        .field("image_request[language]", "en")
-        .field("image_request[latitude]", "35.8714220766008")
-        .field("image_request[locale]", "en_US")
-        .field("image_request[longitude]", "14.3583203002251")
-        .field("image_request[remote_image_url]", returned.url)
-        .end(function(result) {
-            var result = JSON.parse(result.raw_body);
-            console.log(result);
-            console.log('https://camfind.p.mashape.com/image_responses/' + result.token);
-            unirest.get("https://camfind.p.mashape.com/image_responses/" + result.token)
-                .header("X-Mashape-Key", "9jDfMEJDCbmshgtbd0t7s6zd2ZGVp1hu4A9jsnpWi9zQqfIlCr")
-                .end(function(result) {
-                    
-                       console.log(result.status, result.headers, result.body);
-                        fs.unlink(img, function(err) {
-                            if (err) throw err;
-                        });               
-                });                        
+            .header("X-Mashape-Key", "9jDfMEJDCbmshgtbd0t7s6zd2ZGVp1hu4A9jsnpWi9zQqfIlCr")
+            .field("focus[x]", "480")
+            .field("focus[y]", "640")
+            .field("image_request[altitude]", "27.912109375")
+            .field("image_request[language]", "en")
+            .field("image_request[latitude]", "35.8714220766008")
+            .field("image_request[locale]", "en_US")
+            .field("image_request[longitude]", "14.3583203002251")
+            .field("image_request[remote_image_url]", returned.url)
+            .end(function(result) {
+                var that = this;
+                that.result = result;
+                setTimeout(function(result) {
 
+                    var result = JSON.parse(that.result.raw_body);
+                    console.log(result);
+                    console.log('https://camfind.p.mashape.com/image_responses/' + result.token);
+                    unirest.get("https://camfind.p.mashape.com/image_responses/" + result.token)
+                        .header("X-Mashape-Key", "9jDfMEJDCbmshgtbd0t7s6zd2ZGVp1hu4A9jsnpWi9zQqfIlCr")
+                        .end(function(result) {
 
-        });
-        
+                            console.log(result.status, result.headers, result.body);
+
+                        });
+
+                }, 10000);
+            });
+
     });
 
 }
+
