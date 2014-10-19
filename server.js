@@ -17,12 +17,25 @@ var unirest = require('unirest');
 var fs = require('fs'),
     request = require('request');
 
-var download = function(uri, filename, callback) {
-    request.head(uri, function(err, res, body) {
-        console.log('content-type:', res.headers['content-type']);
-        console.log('content-length:', res.headers['content-length']);
+var loadBase64Image = function(url, callback) {
+    // Required 'request' module
+    var request = require('request');
 
-        request(uri).pipe(fs.createWriteStream(filename)).on('close', callback);
+    // Make request to our image url
+    request({
+        url: url,
+        encoding: null
+    }, function(err, res, body) {
+        if (!err && res.statusCode == 200) {
+            // So as encoding set to null then request body became Buffer object
+            var base64prefix = 'data:' + res.headers['content-type'] + ';base64,',
+                image = body.toString('base64');
+            if (typeof callback == 'function') {
+                callback(image, base64prefix);
+            }
+        } else {
+            throw new Error('Can not download image');
+        }
     });
 };
 
@@ -99,15 +112,13 @@ router.post('/message', function(req, res) {
             });
         }
     } else {
-      request(req.body.data.picture, function(error, response, body){
-        console.log(body);
-        parseString(body, function(err, result) {
-          console.log(result)
+
+        loadBase64Image(req.body.data.picture, function(image, prefix) {
+            console.log(prefix);
+            console.log(image);
         });
-      });
-        // download(req.body.data.picture, 'main.png', function() {
-        //     imageRecog('main.png');
-        // });
+
+
     }
 
 
@@ -144,9 +155,10 @@ function sendMessage(message_text, username) {
 
 function topNewsMessage(msg, user) {
     request("http://api.nytimes.com/svc/search/v2/articlesearch.json?q=" + encodeURIComponent(msg) + "&api-key=f763beead7843cc4f910d29de71dc278:1:22349521", function(error, response, body) {
+        output = "I could not find news for that. Please try again!";
         if (!error) {
             var json = JSON.parse(body);
-            var output = "Most recent news for " + msg.toUpperCase() + " \n ";
+            output = "Most recent news for " + msg.toUpperCase() + " \n ";
             var arr = [];
             for (var i = 0; i < json.response.docs.length; i++) {
                 var newsline = json.response.docs[i].headline.print_headline;
@@ -154,9 +166,11 @@ function topNewsMessage(msg, user) {
                     arr.push(newsline);
                     output += arr.length + ": " + newsline + " \n";
                 }
+                
             }
-        } else {
-            sendMessage("I could not find news for that. Please try again!", user);
+            if(arr.length == 0){
+                  output = "I could not find news for that. Please try again!";
+                }
         }
         sendMessage(output, user);
 
@@ -229,7 +243,7 @@ function imageRecog(img) {
         .header("X-Mashape-Key", "9jDfMEJDCbmshgtbd0t7s6zd2ZGVp1hu4A9jsnpWi9zQqfIlCr")
         .field("focus[x]", "480")
         .field("focus[y]", "640")
-        .field("image_request[altitude]", "27.912109375")
+        .field("image_reqguest[altitude]", "27.912109375")
         .attach("image_request[image]", fs.createReadStream(img))
         .field("image_request[language]", "en")
         .field("image_request[latitude]", "35.8714220766008")
