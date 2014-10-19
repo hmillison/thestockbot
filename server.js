@@ -42,46 +42,49 @@ router.get('/', function(req, res) {
 });
 
 router.post('/message', function(req, res) {
+  if (req.body.type == 12) {
+    sendMessage('Hey! Send me the name of any US S&P 500 Company and I will respond with the stock price!', req.body.sender.username);
+  } else {
     var msg = req.body.data.text;
-    if(msg.toUpperCase() == "MORE"){
+    if (msg.toUpperCase() == "MORE") {
       var options = {
         url: 'https://devs.inboxtheapp.com/message?chat_id=' + req.body.chat_id,
         headers: {
           'Authorization': 'bearer ' + server_token
         }
       };
-      request.get(options, function(error, response, body){
+      request.get(options, function(error, response, body) {
         var json = JSON.parse(body);
-        for(var i = 0;i<json.length;i++){
-          if(json[i].sender.username != "thestockbot" && json[i].data.text.toUpperCase() != "MORE"){
-              topNewsMessage(json[i].data.text, json[i].sender.username);
-              break;
+        for (var i = 0; i < json.length; i++) {
+          if (json[i].sender.username != "thestockbot" && json[i].data.text.toUpperCase() != "MORE") {
+            topNewsMessage(json[i].data.text, json[i].sender.username);
+            break;
           }
         }
       });
+    } else {
+      request('http://dev.markitondemand.com/Api/v2/Lookup?input=' + encodeURIComponent(msg), function(error, response, body) {
+        if (!error && response.statusCode == 200) {
+          parseString(body, function(err, result) {
+            console.log(result);
+            if (result.LookupResultList === "") {
+              sendMessage("I don't understand that. Please try again!", req.body.sender.username);
+            } else {
+              var symbol = result.LookupResultList.LookupResult[0].Symbol;
+              getStockDetails(symbol, function(m) {
+                c.log(m);
+                if (!isEmpty(m.data.securityData[0].fieldData)) {
+                  var result = m.data.securityData[0].fieldData;
+                  sendMessage("The stock price for " + result.LONG_COMP_NAME + " is $" + result.PX_LAST + " type 'more' for recent news stories", req.body.sender.username);
+                } else {
+                  sendMessage("I could not find the stock info for that. Please try again!", req.body.sender.username);
+                }
+              });
+            }
+          });
+        }
+      });
     }
-    else{
-    request('http://dev.markitondemand.com/Api/v2/Lookup?input=' + encodeURIComponent(msg), function(error, response, body) {
-      if (!error && response.statusCode == 200) {
-        parseString(body, function(err, result) {
-          console.log(result);
-          if (result.LookupResultList === "") {
-            sendMessage("I don't understand that. Please try again!", req.body.sender.username);
-          } else {
-            var symbol = result.LookupResultList.LookupResult[0].Symbol;
-            getStockDetails(symbol, function(m) {
-              c.log(m);
-              if (!isEmpty(m.data.securityData[0].fieldData)) {
-                var result = m.data.securityData[0].fieldData;
-                sendMessage("The stock price for " + result.LONG_COMP_NAME + " is $" + result.PX_LAST + " type 'more' for recent news stories", req.body.sender.username);
-              } else {
-                sendMessage("I could not find the stock info for that. Please try again!", req.body.sender.username);
-              }
-            });
-          }
-        });
-      }
-    });
   }
 
 // sendMessage('hello world', req.body.sender.username);
