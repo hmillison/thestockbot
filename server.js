@@ -77,7 +77,7 @@ router.post('/message', function(req, res) {
                 c.log(m);
                 if (!isEmpty(m.data.securityData[0].fieldData)) {
                   var result = m.data.securityData[0].fieldData;
-                  sendMessage("The stock price for " + result.LONG_COMP_NAME + " is $" + result.PX_LAST + " \nsend 'more' for recent news stories", req.body.sender.username);
+                  sendMessage("The stock price for " + result.LONG_COMP_NAME + " is $" + result.PX_LAST + "\nsend 'more' for recent news stories", req.body.sender.username);
                 } else {
                   sendMessage("I could not find the stock info for that. Please try again!", req.body.sender.username);
                 }
