@@ -1,8 +1,7 @@
 {
-  "name": "weathertest",
+  "name": "TheStockBot",
   "main": "server.js",
   "dependencies": {
-    "blpapi": "^0.1.10",
     "body-parser": "~1.0.1",
     "cloudinary": "^1.0.12",
     "express": "~4.0.0",
@@ -15,7 +14,7 @@
     "xml2js": "^0.4.4",
     "yql": "~1.0.2"
   },
-  "subdomain": "weathertest",
+  "subdomain": "TheStockBot",
   "scripts": {
     "start": "node server.js"
   },

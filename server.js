@@ -11,7 +11,6 @@ var app = express(); // define our app using express
 var bodyParser = require('body-parser');
 var request = require('request');
 var c = require('./Console.js');
-var blpapi = require('blpapi');
 var parseString = require('xml2js').parseString;
 var unirest = require('unirest');
 var fs = require('fs'),
